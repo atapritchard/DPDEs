@@ -3,7 +3,6 @@
 # Users Alex Havrilla and Alden Pritchard
 
 
-
 import numpy as np
 import tensorflow as tf
 from scipy.stats import multivariate_normal as normal
