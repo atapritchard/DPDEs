@@ -111,17 +111,20 @@ gamma = (alpha * delta_t) / (delta_x ** 2)
 # Initialize solution: the grid of u(k, i, j)
 u = np.empty((max_iter_time, plate_length, plate_length))
 
-# Initial condition everywhere inside the grid
-u_initial = 0
-
-# Boundary conditions
-u_top = 100.0
+# Change boundary conditions
+u_top = 0.0
 u_left = 0.0
 u_bottom = 0.0
 u_right = 0.0
 
-# Set the initial condition
-u.fill(u_initial)
+# Change u_initial (random temperature between 28.5 and 55.5 degree)
+# u_initial = 0
+u_initial = np.random.uniform(low=28.5, high=55.5, size=(plate_length,plate_length))
+
+# Change initial conditions
+# u.fill(u_initial)
+u[0, :, :] = u_initial
+
 
 # Set the boundary conditions
 u[:, (plate_length-1):, :] = u_top
@@ -161,18 +164,3 @@ anim = animation.FuncAnimation(plt.figure(), animate, interval=1, frames=max_ite
 anim.save("heat_equation_solution.gif")
 
 print("Done!")
-
-
-# Change boundary conditions
-u_top = 0.0
-u_left = 0.0
-u_bottom = 0.0
-u_right = 0.0
-
-# Change u_initial (random temperature between 28.5 and 55.5 degree)
-#u_initial = 0
-u_initial = np.random.uniform(low=28.5, high=55.5, size=(plate_length,plate_length))
-
-# Change initial conditions
-#u.fill(u_initial)
-u[0,:,:] = u_initial
