@@ -1,0 +1,14 @@
+---
+title: "ProjectGraphics"
+author: "Alden Pritchard"
+date: "11/2/2020"
+output: html_document
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+df <- read_csv('tests.csv')
+names(df)
+ggplot(df, aes(x=step, y=log(loss_function), color=Equation)) + geom_line()
+
+```

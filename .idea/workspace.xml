@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1288d850-4d0f-43e8-8d9b-c114158d01e6" name="Default Changelist" comment="" />
+    <list default="true" id="1288d850-4d0f-43e8-8d9b-c114158d01e6" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ReferenceCode/pde_logs/test_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/ReferenceCode/pde_logs/test_config.json" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -11,34 +14,13 @@
   <component name="FileEditorManager">
     <leaf>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/DeepBSDE-master/equation.py">
+        <entry file="file://$PROJECT_DIR$/rk_test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-407">
-              <caret line="33" lean-forward="true" selection-start-line="33" selection-end-line="33" />
+            <state relative-caret-position="-121">
+              <caret line="3" column="30" selection-start-line="3" selection-start-column="30" selection-end-line="3" selection-end-column="30" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DeepBSDE-master/solver.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1159">
-              <caret line="84" column="22" selection-start-line="84" selection-start-column="22" selection-end-line="84" selection-end-column="22" />
-              <folding>
-                <element signature="e#0#14#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DeepBSDE-master/main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-317">
-              <caret line="11" column="12" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -61,6 +43,9 @@
         <option value="$PROJECT_DIR$/DeepBSDE-master/equation.py" />
         <option value="$PROJECT_DIR$/DeepBSDE-master/solver.py" />
         <option value="$PROJECT_DIR$/DeepBSDE-master/main.py" />
+        <option value="$PROJECT_DIR$/ReferenceCode/equation.py" />
+        <option value="$PROJECT_DIR$/ReferenceCode/pde_logs/test_config.json" />
+        <option value="$PROJECT_DIR$/rk_test.py" />
       </list>
     </option>
   </component>
@@ -77,7 +62,7 @@
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="y" value="23" />
-    <option name="width" value="1440" />
+    <option name="width" value="1365" />
     <option name="height" value="877" />
   </component>
   <component name="ProjectView">
@@ -92,17 +77,6 @@
             <path>
               <item name="DPDEs" type="b2602c69:ProjectViewProjectNode" />
               <item name="DPDEs" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DPDEs" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DPDEs" type="462c0819:PsiDirectoryNode" />
-              <item name="DeepBSDE-master" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DPDEs" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DPDEs" type="462c0819:PsiDirectoryNode" />
-              <item name="DeepBSDE-master" type="462c0819:PsiDirectoryNode" />
-              <item name="configs" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -142,13 +116,9 @@
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1365" height="877" extended-state="6" />
     <layout>
-      <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2494331" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15570673" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Python Console" />
-      <window_info active="true" anchor="bottom" id="Terminal" visible="true" weight="0.32985657" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32985657" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -156,70 +126,111 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="right" id="R Packages" />
-      <window_info anchor="right" id="R Graphics" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.27249023" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="R Graphics" order="3" />
+      <window_info anchor="right" id="R Packages" order="4" />
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="512">
-            <caret line="32" column="33" lean-forward="true" selection-start-line="31" selection-start-column="33" selection-end-line="32" selection-end-column="33" />
-          </first_editor>
-          <second_editor />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/README.md" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/main.py" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/solver.py" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/pricing_default_risk_d100.json" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/allencahn_d100.json" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/hjb_lq_d100.json" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/burgers_type_d50.json" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/pricing_diffrate_d100.json" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/reaction_diffusion_d100.json" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/quad_grad_d100.json" />
+    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/equation.py" />
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/LICENSE">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/pde_logs/test_training_history.csv">
+      <provider selected="true" editor-type-id="csv-text-editor" />
+      <provider editor-type-id="csv-table-editor">
+        <state showInfoPanel="true" fixedHeaders="false" rowLines="3" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/configs/hjb_lq_d100.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="336">
+          <caret line="21" selection-start-line="21" selection-end-line="21" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/main.py">
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/solver.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-317">
-          <caret line="11" column="12" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/solver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1159">
-          <caret line="84" column="22" selection-start-line="84" selection-start-column="22" selection-end-line="84" selection-end-column="22" />
+        <state relative-caret-position="80">
+          <caret line="5" selection-start-line="5" selection-end-line="5" />
           <folding>
-            <element signature="e#0#14#0" expanded="true" />
+            <element signature="e#133#147#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/pricing_default_risk_d100.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/allencahn_d100.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/hjb_lq_d100.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/burgers_type_d50.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/pricing_diffrate_d100.json">
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="64">
-          <caret line="4" column="22" lean-forward="true" selection-start-line="4" selection-start-column="22" selection-end-line="4" selection-end-column="22" />
+        <state relative-caret-position="416">
+          <caret line="38" column="22" selection-start-line="38" selection-start-column="19" selection-end-line="38" selection-end-column="22" />
+          <folding>
+            <element signature="e#234#245#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/reaction_diffusion_d100.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/configs/quad_grad_d100.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DeepBSDE-master/equation.py">
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/configs/pricing_diffrate_d100.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-407">
-          <caret line="33" lean-forward="true" selection-start-line="33" selection-end-line="33" />
+        <state relative-caret-position="208">
+          <caret line="13" column="16" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/configs/reaction_diffusion_d100.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="14" column="21" lean-forward="true" selection-end-line="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/pde_logs/test_config.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="14" column="21" lean-forward="true" selection-start-line="14" selection-start-column="21" selection-end-line="14" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/configs/allencahn_d100.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="160">
+          <caret line="10" column="23" lean-forward="true" selection-start-line="10" selection-start-column="23" selection-end-line="10" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/configs/quad_grad_d100.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="14" column="21" lean-forward="true" selection-start-line="14" selection-start-column="21" selection-end-line="14" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ReferenceCode/equation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="16">
+          <caret line="77" column="31" selection-start-line="77" selection-start-column="31" selection-end-line="77" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rk_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-121">
+          <caret line="3" column="30" selection-start-line="3" selection-start-column="30" selection-end-line="3" selection-end-column="30" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
