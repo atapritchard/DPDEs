@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1288d850-4d0f-43e8-8d9b-c114158d01e6" name="Default Changelist" comment="" />
+    <list default="true" id="1288d850-4d0f-43e8-8d9b-c114158d01e6" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/heat_equation_solution.gif" beforeDir="false" afterPath="$PROJECT_DIR$/heat_equation_solution.gif" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rk_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/rk_test.py" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -13,10 +17,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rk_test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="92">
-              <caret line="101" column="17" lean-forward="true" selection-start-line="101" selection-start-column="17" selection-end-line="101" selection-end-column="17" />
+            <state relative-caret-position="191">
+              <caret line="106" selection-start-line="106" selection-end-line="106" />
               <folding>
-                <element signature="e#6232#6250#0" expanded="true" />
+                <element signature="e#6247#6265#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -29,6 +33,7 @@
       <find>los</find>
       <find>g_tf</find>
       <find>dw</find>
+      <find>alpha</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -57,7 +62,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
     <option name="width" value="1365" />
     <option name="height" value="877" />
@@ -111,7 +116,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1365" height="877" extended-state="6" />
+    <frame x="0" y="23" width="1365" height="877" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15570673" />
@@ -227,10 +232,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/rk_test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="92">
-          <caret line="101" column="17" lean-forward="true" selection-start-line="101" selection-start-column="17" selection-end-line="101" selection-end-column="17" />
+        <state relative-caret-position="191">
+          <caret line="106" selection-start-line="106" selection-end-line="106" />
           <folding>
-            <element signature="e#6232#6250#0" expanded="true" />
+            <element signature="e#6247#6265#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -1,7 +1,7 @@
 # Credit to G. Nervadof
 # Source: https://levelup.gitconnected.com/solving-2d-heat-equation-numerically-using-python-3334004aa01a
 # Taken on December 3rd, 2020
-# Solver for 2-D Heat Equation
+# Solver for 2-D Heat Equation with GIF outputZ
 # Article text
 '''
 When I was in college studying physics a few years ago, I remember there was a task to solve heat equation analytically for some simple problems. In the next semester we learned about numerical methods to solve some partial differential equations (PDEs) in general. It’s really interesting to see how we could solve them numerically and visualize the solutions as a heat map, and it’s really cool (pun intended). I also remember, in the previous semester we learned C programming language, so it was natural for us to solve PDEs numerically using C although some students were struggling with C and not with solving the PDE itself. If I had known how to code in Python back then, I would’ve used it instead of C (I am not saying C is bad though). Here, I am going to show how we can solve 2D heat equation numerically and see how easy it is to “translate” the equations into Python code.
@@ -95,14 +95,17 @@ Python is relatively easy to learn for beginners compared to other programming l
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from tqdm import tqdm
 from matplotlib.animation import FuncAnimation
+
+from pdb import set_trace as debug
 
 print("2D heat equation solver")
 
-plate_length = 50
-max_iter_time = 750
+plate_length = 100
+max_iter_time = 400
 
-alpha = 2
+alpha = 0.1
 delta_x = 1
 
 delta_t = (delta_x ** 2)/(4 * alpha)
@@ -119,7 +122,17 @@ u_right = 0.0
 
 # Change u_initial (random temperature between 28.5 and 55.5 degree)
 # u_initial = 0
-u_initial = np.random.uniform(low=28.5, high=55.5, size=(plate_length,plate_length))
+# u_initial = np.random.normal(0, 1, size=(plate_length,plate_length))
+u_initial = np.zeros((plate_length, plate_length))
+gaussian_pdf = lambda x, y: np.exp(-(x**2+y**2) / 2*0.5)  # |covariance matrix| = 0.5
+mid = plate_length // 2
+for i in range(plate_length):
+    for j in range(plate_length):
+        u_initial[i, j] = 200*gaussian_pdf((i - mid) / (mid / 4), (j - mid) / (mid / 4))
+
+
+# debug()
+
 
 # Change initial conditions
 # u.fill(u_initial)
@@ -132,8 +145,9 @@ u[:, :, :1] = u_left
 u[:, :1, 1:] = u_bottom
 u[:, :, (plate_length-1):] = u_right
 
+
 def calculate(u):
-    for k in range(0, max_iter_time-1, 1):
+    for k in tqdm(range(0, max_iter_time-1, 1), desc='progress', ncols=80):
         for i in range(1, plate_length-1, delta_x):
             for j in range(1, plate_length-1, delta_x):
                 u[k + 1, i, j] = gamma * (u[k][i+1][j] + u[k][i-1][j] + u[k][i][j+1] + u[k][i][j-1] - 4*u[k][i][j]) + u[k][i][j]
@@ -156,6 +170,7 @@ def plotheatmap(u_k, k):
 
 # Do the calculation here
 u = calculate(u)
+temp = u
 
 def animate(k):
     plotheatmap(u[k], k)
