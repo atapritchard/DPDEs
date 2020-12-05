@@ -38,10 +38,17 @@
 \newtheorem{conjecture}{Conjecture}
 
 \theoremstyle{definition}
-\newtheorem{defn}[theorem]{Definition}
-\newtheorem{exmp}[theorem]{Example}
-
-
+\newtheorem{prop}{Prop}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newtheorem{defi}{Def}
+\newtheorem{apps}{Application}
+\newtheorem{quest}{Question}
+\newtheorem{ans}{Answer}
+\newtheorem{interest}{Interesting}
+\newtheorem{theme}{Theme}
+\newtheorem{theorem}{Theorem}
+\newtheorem{example}{Example}
 
 
 
@@ -95,7 +102,13 @@ Second orders derivatives quadratically costly: Could use backprop but instead u
 
 ?Numerous choices made outlined in 47 toronto?
 
+\section{Model Notes}
 
+Keep in mind our approximations differ from closed form cause we assume trapped in compact box(as opposed to analytical solution)
+
+Our perfomance is so variable?
+
+Upshot of our model is that our output is smooth whereas other outputs continuous.
 
 
 \subsection{Comparisons}
@@ -110,11 +123,16 @@ Approximate other functions? Ray tracing equation?
 
 Where does the parallelism come in?
 
-\begin{thebibliography}{9}
+\section{Heat Equation}
 
+\begin{verbatim}
+	https://en.wikipedia.org/wiki/Heat_equation
+\end{verbatim}
 
+In most general case not always possible to get closed form solution. 
 
-\end{thebibliography}
+Need fundamental solutions, not always even closed form.
+
 
 \end{document}
 
