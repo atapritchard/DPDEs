@@ -131,9 +131,6 @@ for i in range(plate_length):
         u_initial[i, j] = 200*gaussian_pdf((i - mid) / (mid / 4), (j - mid) / (mid / 4))
 
 
-# debug()
-
-
 # Change initial conditions
 # u.fill(u_initial)
 u[0, :, :] = u_initial
@@ -151,6 +148,8 @@ def calculate(u):
         for i in range(1, plate_length-1, delta_x):
             for j in range(1, plate_length-1, delta_x):
                 u[k + 1, i, j] = gamma * (u[k][i+1][j] + u[k][i-1][j] + u[k][i][j+1] + u[k][i][j-1] - 4*u[k][i][j]) + u[k][i][j]
+
+                # Rework to use scipy solver
 
     return u
 
