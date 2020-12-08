@@ -1,3 +1,5 @@
+# Source: https://www.ctcms.nist.gov/fipy/examples/diffusion/generated/examples.diffusion.mesh1D.html
+# Accesssed 12/8/2020
 from fipy import Variable, FaceVariable, CellVariable, Grid1D, ExplicitDiffusionTerm, TransientTerm, DiffusionTerm, Viewer
 from fipy.tools import numerix
 from pdb import set_trace as debug
