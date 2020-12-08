@@ -211,7 +211,7 @@ def solver_BE(I, a, L, Nx, F, T, user_action=None):
         diagonals=[diagonal, lower, upper],
         offsets=[0, -1, 1], shape=(Nx+1, Nx+1),
         format='csr')
-    print A.todense()
+    print(A.todense())
 
     # Set initial condition
     for i in range(0,Nx+1):
@@ -343,7 +343,7 @@ def plug(scheme='FE', F=0.5, Nx=50):
     u, cpu = viz(I, a, L, Nx, F, T,
                  umin=-0.1, umax=1.1,
                  scheme=scheme, animate=True, framefiles=True)
-    print 'CPU time:', cpu
+    print('CPU time:', cpu)
 
 def gaussian(scheme='FE', F=0.5, Nx=50, sigma=0.05):
     L = 1.
@@ -357,7 +357,7 @@ def gaussian(scheme='FE', F=0.5, Nx=50, sigma=0.05):
     u, cpu = viz(I, a, L, Nx, F, T,
                  umin=-0.1, umax=1.1,
                  scheme=scheme, animate=True, framefiles=True)
-    print 'CPU time:', cpu
+    print('CPU time:', cpu)
 
 
 def expsin(scheme='FE', F=0.5, m=3):
@@ -385,7 +385,7 @@ def expsin(scheme='FE', F=0.5, m=3):
     for Nx in Nx_values:
         eval('solver_'+scheme)(I, a, L, Nx, F, T, user_action=action)
         dt = F*(L/Nx)**2/a
-        print dt, errors[-1]
+        print(dt, errors[-1])
 
 def test_solvers():
     def u_exact(x, t):
@@ -422,8 +422,8 @@ def test_solvers():
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print """Usage %s function arg1 arg2 arg3 ...""" % sys.argv[0]
+        print("""Usage %s function arg1 arg2 arg3 ...""" % sys.argv[0])
         sys.exit(0)
     cmd = '%s(%s)' % (sys.argv[1], ', '.join(sys.argv[2:]))
-    print cmd
+    print(cmd)
     eval(cmd)
