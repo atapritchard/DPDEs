@@ -1,20 +1,25 @@
-\BOOKMARK [1][-]{section.1}{Background}{}% 1
-\BOOKMARK [1][-]{section.2}{Methods}{}% 2
-\BOOKMARK [2][-]{subsection.2.1}{ DGM Architecture }{section.2}% 3
-\BOOKMARK [2][-]{subsection.2.2}{ Individual DGM layer }{section.2}% 4
-\BOOKMARK [1][-]{section.3}{Results}{}% 5
-\BOOKMARK [1][-]{section.4}{Conclusion}{}% 6
-\BOOKMARK [2][-]{subsection.4.1}{Style}{section.4}% 7
-\BOOKMARK [2][-]{subsection.4.2}{Retrieval of style files}{section.4}% 8
-\BOOKMARK [1][-]{section.5}{General formatting instructions}{}% 9
-\BOOKMARK [1][-]{section.6}{Headings: first level}{}% 10
-\BOOKMARK [2][-]{subsection.6.1}{Headings: second level}{section.6}% 11
-\BOOKMARK [3][-]{subsubsection.6.1.1}{Headings: third level}{subsection.6.1}% 12
-\BOOKMARK [1][-]{section.7}{Citations, figures, tables, references}{}% 13
-\BOOKMARK [2][-]{subsection.7.1}{Citations within the text}{section.7}% 14
-\BOOKMARK [2][-]{subsection.7.2}{Footnotes}{section.7}% 15
-\BOOKMARK [2][-]{subsection.7.3}{Figures}{section.7}% 16
-\BOOKMARK [2][-]{subsection.7.4}{Tables}{section.7}% 17
-\BOOKMARK [1][-]{section.8}{Final instructions}{}% 18
-\BOOKMARK [1][-]{section.9}{Preparing PDF files}{}% 19
-\BOOKMARK [2][-]{subsection.9.1}{Margins in LaTeX}{section.9}% 20
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Background}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{PDEs and Heat Equation}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Traditional Approximation Methods}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Related Work}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{ DGM Architecture }{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{ Individual DGM layer }{section.3}% 7
+\BOOKMARK [1][-]{section.4}{Methods}{}% 8
+\BOOKMARK [2][-]{subsection.4.1}{Architecture}{section.4}% 9
+\BOOKMARK [2][-]{subsection.4.2}{Sampling Methodology}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.3}{Initial/Boundary Conditions}{section.4}% 11
+\BOOKMARK [1][-]{section.5}{Results}{}% 12
+\BOOKMARK [2][-]{subsection.5.1}{Depth of Network}{section.5}% 13
+\BOOKMARK [2][-]{subsection.5.2}{Training Time}{section.5}% 14
+\BOOKMARK [2][-]{subsection.5.3}{Number of Samples}{section.5}% 15
+\BOOKMARK [2][-]{subsection.5.4}{Dependence on Dimension}{section.5}% 16
+\BOOKMARK [1][-]{section.6}{Analysis}{}% 17
+\BOOKMARK [2][-]{subsection.6.1}{Depth of Network}{section.6}% 18
+\BOOKMARK [2][-]{subsection.6.2}{Training Time}{section.6}% 19
+\BOOKMARK [2][-]{subsection.6.3}{Number of Samples}{section.6}% 20
+\BOOKMARK [2][-]{subsection.6.4}{Dependence on Dimension}{section.6}% 21
+\BOOKMARK [1][-]{section.7}{Future Work}{}% 22
+\BOOKMARK [2][-]{subsection.7.1}{Different Architectures}{section.7}% 23
+\BOOKMARK [2][-]{subsection.7.2}{Dealing Higher Dimensions}{section.7}% 24
+\BOOKMARK [2][-]{subsection.7.3}{Other PDEs}{section.7}% 25
