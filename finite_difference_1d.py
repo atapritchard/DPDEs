@@ -1,429 +1,684 @@
-# Source: https://github.com/hplgit/num-methods-for-PDEs/blob/master/src/diffu/diffu1D_u0.py
-#!/usr/bin/env python
-# As v1, but using scipy.sparse.diags instead of spdiags
-"""
-Functions for solving a 1D diffusion equations of simplest types
-(constant coefficient, no source term):
+# Source: https://www.ctcms.nist.gov/fipy/examples/diffusion/generated/examples.diffusion.mesh1D.html
+# Accesssed 12/8/2020
+from fipy import Variable, FaceVariable, CellVariable, Grid1D, ExplicitDiffusionTerm, TransientTerm, DiffusionTerm, Viewer
+from fipy.tools import numerix
+from pdb import set_trace as debug
 
-      u_t = a*u_xx on (0,L)
+nx = 50
+dx = 1.
+mesh = Grid1D(nx=nx, dx=dx)
 
-with boundary conditions u=0 on x=0,L, for t in (0,T].
-Initial condition: u(x,0)=I(x).
+# FiPy solves all equations at the centers of the cells of the mesh. We thus need a CellVariable object to hold the values of the solution, with the initial condition \phi = 0 at t = 0,
 
-The following naming convention of variables are used.
+phi = CellVariable(name="solution variable", mesh=mesh, value=0.)
 
-===== ==========================================================
-Name  Description
-===== ==========================================================
-Nx    The total number of mesh cells; mesh points are numbered
-      from 0 to Nx.
-F     The dimensionless number a*dt/dx**2, which implicitly
-      specifies the time step.
-T     The stop time for the simulation.
-I     Initial condition (Python function of x).
-a     Variable coefficient (constant).
-L     Length of the domain ([0,L]).
-x     Mesh points in space.
-t     Mesh points in time.
-n     Index counter in time.
-u     Unknown at current/new time level.
-u_1   u at the previous time level.
-dx    Constant mesh spacing in x.
-dt    Constant mesh spacing in t.
-===== ==========================================================
+# We’ll let
 
-user_action is a function of (u, x, t, n), u[i] is the solution at
-spatial mesh point x[i] at time t[n], where the calling code
-can add visualization, error computations, data analysis,
-store solutions, etc.
-"""
-import sys, time
-from scitools.std import *
-import scipy.sparse
-import scipy.sparse.linalg
+D = 1.
 
-def solver_FE_simple(I, a, L, Nx, F, T):
-    """
-    Simplest expression of the computational algorithm
-    using the Forward Euler method and explicit Python loops.
-    For this method F <= 0.5 for stability.
-    """
-    import time
-    t0 = time.clock()
+# for now.
+# The set of boundary conditions are given to the equation as a Python tuple or list (the distinction is not generally important to FiPy). The boundary conditions
+# \phi = \begin{cases} 0& \text{at \(x = 1\),} \\ 1& \text{at \(x = 0\).} \end{cases}
+# are formed with a value
 
-    x = linspace(0, L, Nx+1)   # mesh points in space
-    dx = x[1] - x[0]
-    dt = F*dx**2/a
-    Nt = int(round(T/float(dt)))
-    t = linspace(0, T, Nt+1)   # mesh points in time
-    u   = zeros(Nx+1)
-    u_1 = zeros(Nx+1)
+valueLeft = 1
+valueRight = 0
 
-    # Set initial condition u(x,0) = I(x)
-    for i in range(0, Nx+1):
-        u_1[i] = I(x[i])
+# and a set of faces over which they apply.
+# Note
+# Only faces around the exterior of the mesh can be used for boundary conditions.
+# For example, here the exterior faces on the left of the domain are extracted by mesh.facesLeft. The boundary conditions is applied using phi. constrain() with these faces and a value (valueLeft).
+#
+phi.constrain(valueRight, mesh.facesRight)
+phi.constrain(valueLeft, mesh.facesLeft)
 
-    for n in range(0, Nt):
-        # Compute u at inner mesh points
-        for i in range(1, Nx):
-            u[i] = u_1[i] + F*(u_1[i-1] - 2*u_1[i] + u_1[i+1])
+# Note
+# If no boundary conditions are specified on exterior faces, the default boundary condition is equivalent to a zero gradient, equivalent to \vec{n} \cdot \nabla \phi \rvert_\text{someFaces} = 0.
+# If you have ever tried to numerically solve Eq. (1), you most likely attempted “explicit finite differencing” with code something like:
+# for step in range(steps):
+#     for j in range(cells):
+#         phi_new[j] = phi_old[j] \
+#           + (D * dt / dx**2) * (phi_old[j+1] - 2 * phi_old[j] + phi_old[j-1])
+#     time += dt
+# plus additional code for the boundary conditions. In FiPy, you would write
+#
+eqX = TransientTerm() == ExplicitDiffusionTerm(coeff=D)
 
-        # Insert boundary conditions
-        u[0] = 0;  u[Nx] = 0
+# The largest stable timestep that can be taken for this explicit 1D diffusion problem is \Delta t \le \Delta x^2 / (2 D).
+# We limit our steps to 90% of that value for good measure
 
-        # Switch variables before next step
-        u_1, u = u, u_1
+timeStepDuration = 0.9 * dx**2 / (2 * D)
+steps = 100
 
-    t1 = time.clock()
-    return u, x, t, t1-t0
+# If we’re running interactively, we’ll want to view the result, but not if this example is being run automatically as a test. We accomplish this by having Python check if this script is the “__main__” script, which will only be true if we explicitly launched it and not if it has been imported by another script such as the automatic tester. The factory function Viewer() returns a suitable viewer depending on available viewers and the dimension of the mesh.
 
+phiAnalytical = CellVariable(name="analytical value", mesh=mesh)
 
-def solver_FE(I, a, L, Nx, F, T,
-              user_action=None, version='scalar'):
-    """
-    Vectorized implementation of solver_FE_simple.
-    """
-    import time
-    t0 = time.clock()
-
-    x = linspace(0, L, Nx+1)   # mesh points in space
-    dx = x[1] - x[0]
-    dt = F*dx**2/a
-    Nt = int(round(T/float(dt)))
-    t = linspace(0, T, Nt+1)   # mesh points in time
-
-    u   = zeros(Nx+1)   # solution array
-    u_1 = zeros(Nx+1)   # solution at t-dt
-    u_2 = zeros(Nx+1)   # solution at t-2*dt
-
-    # Set initial condition
-    for i in range(0,Nx+1):
-        u_1[i] = I(x[i])
-
-    if user_action is not None:
-        user_action(u_1, x, t, 0)
-
-    for n in range(0, Nt):
-        # Update all inner points
-        if version == 'scalar':
-            for i in range(1, Nx):
-                u[i] = u_1[i] + F*(u_1[i-1] - 2*u_1[i] + u_1[i+1])
-
-        elif version == 'vectorized':
-            u[1:Nx] = u_1[1:Nx] +  \
-                      F*(u_1[0:Nx-1] - 2*u_1[1:Nx] + u_1[2:Nx+1])
-        else:
-            raise ValueError('version=%s' % version)
-
-        # Insert boundary conditions
-        u[0] = 0;  u[Nx] = 0
-        if user_action is not None:
-            user_action(u, x, t, n+1)
-
-        # Update u_1 before next step
-        #u_1[:] = u  # safe, but slow
-        u_1, u = u, u_1  # just switch references
-
-    t1 = time.clock()
-    return u, x, t, t1-t0
-
-
-def solver_BE_simple(I, a, L, Nx, F, T):
-    """
-    Simplest expression of the computational algorithm
-    for the Backward Euler method, using explicit Python loops
-    and a dense matrix format for the coefficient matrix.
-    """
-    import time
-    t0 = time.clock()
-    x = linspace(0, L, Nx+1)   # mesh points in space
-    dx = x[1] - x[0]
-    dt = F*dx**2/a
-    Nt = int(round(T/float(dt)))
-    t = linspace(0, T, Nt+1)   # mesh points in time
-    u   = zeros(Nx+1)
-    u_1 = zeros(Nx+1)
-
-    # Data structures for the linear system
-    A = zeros((Nx+1, Nx+1))
-    b = zeros(Nx+1)
-
-    for i in range(1, Nx):
-        A[i,i-1] = -F
-        A[i,i+1] = -F
-        A[i,i] = 1 + 2*F
-    A[0,0] = A[Nx,Nx] = 1
-
-    # Set initial condition u(x,0) = I(x)
-    for i in range(0, Nx+1):
-        u_1[i] = I(x[i])
-
-    for n in range(0, Nt):
-        # Compute b and solve linear system
-        for i in range(1, Nx):
-            b[i] = -u_1[i]
-        b[0] = b[Nx] = 0
-        u[:] = linalg.solve(A, b)
-
-        # Update u_1 before next step
-        #u_1[:]= u
-        u_1, u = u, u_1
-
-    t1 = time.clock()
-    return u, x, t, t1-t0
-
-
-
-def solver_BE(I, a, L, Nx, F, T, user_action=None):
-    """
-    Vectorized implementation of solver_BE_simple using also
-    a sparse (tridiagonal) matrix for efficiency.
-    """
-    import time
-    t0 = time.clock()
-
-    x = linspace(0, L, Nx+1)   # mesh points in space
-    dx = x[1] - x[0]
-    dt = F*dx**2/a
-    Nt = int(round(T/float(dt)))
-    t = linspace(0, T, Nt+1)   # mesh points in time
-
-    u   = zeros(Nx+1)   # solution array at t[n+1]
-    u_1 = zeros(Nx+1)   # solution at t[n]
-
-    # Representation of sparse matrix and right-hand side
-    diagonal = zeros(Nx+1)
-    lower    = zeros(Nx)
-    upper    = zeros(Nx)
-    b        = zeros(Nx+1)
-
-    # Precompute sparse matrix
-    diagonal[:] = 1 + 2*F
-    lower[:] = -F  #1
-    upper[:] = -F  #1
-    # Insert boundary conditions
-    diagonal[0] = 1
-    upper[0] = 0
-    diagonal[Nx] = 1
-    lower[-1] = 0
-
-    A = scipy.sparse.diags(
-        diagonals=[diagonal, lower, upper],
-        offsets=[0, -1, 1], shape=(Nx+1, Nx+1),
-        format='csr')
-    print(A.todense())
-
-    # Set initial condition
-    for i in range(0,Nx+1):
-        u_1[i] = I(x[i])
-
-    if user_action is not None:
-        user_action(u_1, x, t, 0)
-
-    for n in range(0, Nt):
-        b = u_1
-        b[0] = b[-1] = 0.0  # boundary conditions
-        u[:] = scipy.sparse.linalg.spsolve(A, b)
-
-        if user_action is not None:
-            user_action(u, x, t, n+1)
-
-        # Update u_1 before next step
-        #u_1[:] = u
-        u_1, u = u, u_1
-
-    t1 = time.clock()
-    return u, x, t, t1-t0
-
-
-def solver_theta(I, a, L, Nx, F, T, theta=0.5, u_L=0, u_R=0,
-                 user_action=None):
-    """
-    Full solver for the model problem using the theta-rule
-    difference approximation in time (no restriction on F,
-    i.e., the time step when theta >= 0.5).
-    Vectorized implementation and sparse (tridiagonal)
-    coefficient matrix.
-    """
-    import time
-    t0 = time.clock()
-
-    x = linspace(0, L, Nx+1)   # mesh points in space
-    dx = x[1] - x[0]
-    dt = F*dx**2/a
-    Nt = int(round(T/float(dt)))
-    t = linspace(0, T, Nt+1)   # mesh points in time
-
-    u   = zeros(Nx+1)   # solution array at t[n+1]
-    u_1 = zeros(Nx+1)   # solution at t[n]
-
-    # Representation of sparse matrix and right-hand side
-    diagonal = zeros(Nx+1)
-    lower    = zeros(Nx)
-    upper    = zeros(Nx)
-    b        = zeros(Nx+1)
-
-    # Precompute sparse matrix (scipy format)
-    Fl = F*theta
-    Fr = F*(1-theta)
-    diagonal[:] = 1 + 2*Fl
-    lower[:] = -Fl  #1
-    upper[:] = -Fl  #1
-    # Insert boundary conditions
-    diagonal[0] = 1
-    upper[0] = 0
-    diagonal[Nx] = 1
-    lower[-1] = 0
-
-    diags = [0, -1, 1]
-    A = scipy.sparse.diags(
-        diagonals=[diagonal, lower, upper],
-        offsets=[0, -1, 1], shape=(Nx+1, Nx+1),
-        format='csr')
-    #print A.todense()
-
-    # Set initial condition
-    for i in range(0,Nx+1):
-        u_1[i] = I(x[i])
-
-    if user_action is not None:
-        user_action(u_1, x, t, 0)
-
-    # Time loop
-    for n in range(0, Nt):
-        b[1:-1] = u_1[1:-1] + Fr*(u_1[:-2] - 2*u_1[1:-1] + u_1[2:])
-        b[0] = u_L; b[-1] = u_R  # boundary conditions
-        u[:] = scipy.sparse.linalg.spsolve(A, b)
-
-        if user_action is not None:
-            user_action(u, x, t, n+1)
-
-        # Update u_1 before next step
-        #u_1[:] = u
-        u_1, u = u, u_1
-
-    t1 = time.clock()
-    return u, x, t, t1-t0
-
-
-def viz(I, a, L, Nx, F, T, umin, umax,
-        scheme='FE', animate=True, framefiles=True):
-
-    def plot_u(u, x, t, n):
-        plot(x, u, 'r-', axis=[0, L, umin, umax], title='t=%f' % t[n])
-        if framefiles:
-            savefig('tmp_frame%04d.png' % n)
-        if t[n] == 0:
-            time.sleep(2)
-        elif not framefiles:
-            # It takes time to write files so pause is needed
-            # for screen only animation
-            time.sleep(0.2)
-
-    user_action = plot_u if animate else lambda u,x,t,n: None
-
-    u, x, t, cpu = eval('solver_'+scheme)\
-                   (I, a, L, Nx, F, T,
-                    user_action=user_action)
-    return u, cpu
-
-
-def plug(scheme='FE', F=0.5, Nx=50):
-    L = 1.
-    a = 1
-    T = 0.1
-
-    def I(x):
-        """Plug profile as initial condition."""
-        if abs(x-L/2.0) > 0.1:
-            return 0
-        else:
-            return 1
-
-    u, cpu = viz(I, a, L, Nx, F, T,
-                 umin=-0.1, umax=1.1,
-                 scheme=scheme, animate=True, framefiles=True)
-    print('CPU time:', cpu)
-
-def gaussian(scheme='FE', F=0.5, Nx=50, sigma=0.05):
-    L = 1.
-    a = 1
-    T = 0.1
-
-    def I(x):
-        """Gaussian profile as initial condition."""
-        return exp(-0.5*((x-L/2.0)**2)/sigma**2)
-
-    u, cpu = viz(I, a, L, Nx, F, T,
-                 umin=-0.1, umax=1.1,
-                 scheme=scheme, animate=True, framefiles=True)
-    print('CPU time:', cpu)
-
-
-def expsin(scheme='FE', F=0.5, m=3):
-    L = 10.0
-    a = 1
-    T = 1.2
-
-    def exact(x, t):
-        return exp(-m**2*pi**2*a/L**2*t)*sin(m*pi/L*x)
-
-    def I(x):
-        return exact(x, 0)
-
-    Nx = 80
-    viz(I, a, L, Nx, F, T, -1, 1, scheme=scheme, animate=True,
-        framefiles=True)
-
-    # Convergence study
-    def action(u, x, t, n):
-        e = abs(u - exact(x, t[n])).max()
-        errors.append(e)
-
-    errors = []
-    Nx_values = [10, 20, 40, 80, 160]
-    for Nx in Nx_values:
-        eval('solver_'+scheme)(I, a, L, Nx, F, T, user_action=action)
-        dt = F*(L/Nx)**2/a
-        print(dt, errors[-1])
-
-def test_solvers():
-    def u_exact(x, t):
-        return (L-x)**2*5*t  # fulfills BC at x=0 and x=L
-
-    def I(x):
-        return u_exact(x, 0)
-
-    def f(x, t):
-        return (L-x)**2*t - a*2*5*t
-
-    a = 3.5
-    L = 1.5
-    import functools
-    s = functools.partial  # object for calling a function w/args
-    solvers = [
-        s(solver_FE_simple, I=I, a=a, L=L, F=0.5, T=2),
-        s(solver_FE,        I=I, a=a, L=L, F=0.5, T=2,
-          user_action=None, version='scalar'),
-        s(solver_FE,        I=I, a=a, L=L, F=0.5, T=2,
-          user_action=None, version='vectorized'),
-        s(solver_BE_simple, I=I, a=a, L=L, F=0.5, T=2),
-        s(solver_BE,        I=I, a=a, L=L, F=0.5, T=2,
-          user_action=None),
-        s(solver_theta,     I=I, a=a, L=L, F=0.5, T=2,
-          theta=0, u_L=0, u_R=0, user_action=None),
-        ]
-    for solver in solvers:
-        u, x, t, cpu = solver()
-        u_e = u_exact(x, t[-1])
-        diff = abs(u_e - u).max()
-        tol = 1E-14
-        assert diff < tol, 'max diff: %g' % diff
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("""Usage %s function arg1 arg2 arg3 ...""" % sys.argv[0])
-        sys.exit(0)
-    cmd = '%s(%s)' % (sys.argv[1], ', '.join(sys.argv[2:]))
-    print(cmd)
-    eval(cmd)
+    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
+    viewer.plot()
+
+
+# In a semi-infinite domain, the analytical solution for this transient diffusion problem is given by \phi = 1 - \erf(x/2\sqrt{D t}). If the SciPy library is available, the result is tested against the expected profile:
+#
+x = mesh.cellCenters[0]
+t = timeStepDuration * steps
+try:
+    from scipy.special import erf
+    phiAnalytical.setValue(1 - erf(x / (2 * numerix.sqrt(D * t))))
+except ImportError:
+    print("The SciPy library is not available to test the solution to the transient diffusion equation")
+#
+# We then solve the equation by repeatedly looping in time:
+# from builtins import range
+
+for step in range(steps):
+    eqX.solve(var=phi,
+              dt=timeStepDuration)
+if __name__ == '__main__':
+    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
+    viewer.plot()
+
+# print(phi.allclose(phiAnalytical, atol=7e-4))
+# debug()
+
+from fipy import input
+
+if __name__ == '__main__':
+
+    input("Explicit transient diffusion. Press <return> to proceed...")
+
+# solution to diffusion problem evolved by explicit time steps
+#
+# Although explicit finite differences are easy to program, we have just seen that this 1D transient diffusion problem is limited to taking rather small time steps. If, instead, we represent Eq. (1) as:
+
+# phi_new[j] = phi_old[j] + (D * dt / dx**2) * (phi_new[j+1] - 2 * phi_new[j] + phi_new[j-1])
+
+# it is possible to take much larger time steps. Because phi_new appears on both the left and right sides of the equation, this form is called “implicit”. In general, the “implicit” representation is much more difficult to program than the “explicit” form that we just used, but in FiPy, all that is needed is to write
+
+eqI = TransientTerm() == DiffusionTerm(coeff=D)
+
+# reset the problem
+
+phi.setValue(valueRight)
+
+# and rerun with much larger time steps
+
+timeStepDuration *= 10
+#
+steps //= 10
+#
+# from builtins import range
+#
+for step in range(steps):
+    eqI.solve(var=phi, dt=timeStepDuration)
+if __name__ == '__main__':
+    print(phi.value)
+    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
+    viewer.plot()
+
+# print(phi.allclose(phiAnalytical, atol = 2e-2))
+# 1
+#
+from fipy import input
+if __name__ == '__main__':
+    input("Implicit transient diffusion. Press <return> to proceed...")
+#
+# solution to diffusion problem evolved by implicit time steps
+#
+# Note that although much larger stable timesteps can be taken with this implicit version (there is, in fact, no limit to how large an implicit timestep you can take for this particular problem), the solution is less accurate. One way to achieve a compromise between stability and accuracy is with the Crank-Nicholson scheme, represented by:
+#
+# phi_new[j] = phi_old[j] + (D * dt / (2 * dx**2)) * \
+#                 ((phi_new[j+1] - 2 * phi_new[j] + phi_new[j-1])
+#                  + (phi_old[j+1] - 2 * phi_old[j] + phi_old[j-1]))
+#
+# which is essentially an average of the explicit and implicit schemes from above. This can be rendered in FiPy as easily as
+#
+eqCN = eqX + eqI
+#
+# We again reset the problem
+#
+phi.setValue(valueRight)
+#
+# and apply the Crank-Nicholson scheme until the end, when we apply one step of the fully implicit scheme to drive down the error (see, e.g., section 19.2 of [23]).
+#
+# from builtins import range
+#
+for step in range(steps - 1):
+    eqCN.solve(var=phi, dt=timeStepDuration)
+    print(phi.value)
+if __name__ == '__main__':
+    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
+    viewer.plot()
+#
+eqI.solve(var=phi, dt=timeStepDuration)
+#
+if __name__ == '__main__':
+    print(phi.value)
+    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
+    viewer.plot()
+#
+# print(phi.allclose(phiAnalytical, atol = 3e-3))
+# 1
+#
+from fipy import input
+if __name__ == '__main__':
+    input("Crank-Nicholson transient diffusion. Press <return> to proceed...")
+#
+# As mentioned above, there is no stable limit to how large a time step can be taken for the implicit diffusion problem. In fact, if the time evolution of the problem is not interesting, it is possible to eliminate the time step altogether by omitting the TransientTerm. The steady-state diffusion equation
+#
+# D \nabla^2 \phi = 0
+#
+# is represented in FiPy by
+#
+DiffusionTerm(coeff=D).solve(var=phi)
+#
+if __name__ == '__main__':
+    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
+    viewer.plot()
+#
+# The analytical solution to the steady-state problem is no longer an error function, but simply a straight line, which we can confirm to a tolerance of 10^{-10}.
+#
+L = nx * dx
+print(phi.allclose(valueLeft + (valueRight - valueLeft) * x / L, rtol = 1e-10, atol=1e-10))
+# 1
+from fipy import input
+if __name__ == '__main__':
+    input("Implicit steady-state diffusion. Press <return> to proceed...")
+#
+# steady-state solution to diffusion problem
+#
+# Often, boundary conditions may be functions of another variable in the system or of time.
+#
+# For example, to have
+#
+# \phi = \begin{cases} (1 + \sin t) / 2 &\text{on \( x = 0 \)} \\ 0 &\text{on \( x = L \)} \\ \end{cases}
+#
+# we will need to declare time t as a Variable
+#
+# time = Variable()
+#
+# and then declare our boundary condition as a function of this Variable
+#
+# del phi.faceConstraints
+#
+# valueLeft = 0.5 * (1 + numerix.sin(time))
+#
+# phi.constrain(valueLeft, mesh.facesLeft)
+#
+# phi.constrain(0., mesh.facesRight)
+#
+# eqI = TransientTerm() == DiffusionTerm(coeff=D)
+#
+# When we update time at each timestep, the left-hand boundary condition will automatically update,
+#
+# dt = .1
+#
+# while time() < 15:
+#
+#     time.setValue(time() + dt)
+#
+#     eqI.solve(var=phi, dt=dt)
+#
+#     if __name__ == '__main__':
+#
+#         viewer.plot()
+#
+# from fipy import input
+#
+# if __name__ == '__main__':
+#
+#     input("Time-dependent boundary condition. Press <return> to proceed...")
+#
+# solution to diffusion problem with a time-dependent Dirichlet boundary condition
+#
+# Many interesting problems do not have simple, uniform diffusivities. We consider a steady-state diffusion problem
+#
+# \nabla \cdot ( D \nabla \phi) = 0,
+#
+# with a spatially varying diffusion coefficient
+#
+# D = \begin{cases} 1& \text{for \( 0 < x < L / 4 \),} \\ 0.1& \text{for \( L / 4 \le x < 3 L / 4 \),} \\ 1& \text{for \( 3 L / 4 \le x < L \),} \end{cases}
+#
+# and with boundary conditions \phi = 0 at x = 0 and D \frac{\partial \phi}{\partial x} = 1 at x = L, where L is the length of the solution domain. Exact numerical answers to this problem are found when the mesh has cell centers that lie at L / 4 and 3 L / 4, or when the number of cells in the mesh N_i satisfies N_i = 4 i + 2, where i is an integer. The mesh we’ve been using thus far is satisfactory, with N_i = 50 and i = 12.
+#
+# Because FiPy considers diffusion to be a flux from one cell to the next, through the intervening face, we must define the non-uniform diffusion coefficient on the mesh faces
+#
+# D = FaceVariable(mesh=mesh, value=1.0)
+#
+# X = mesh.faceCenters[0]
+#
+# D.setValue(0.1, where=(L / 4. <= X) & (X < 3. * L / 4.))
+#
+# The boundary conditions are a fixed value of
+#
+# valueLeft = 0.
+#
+# to the left and a fixed flux of
+#
+# fluxRight = 1.
+#
+# to the right:
+#
+# phi = CellVariable(mesh=mesh)
+#
+# phi.faceGrad.constrain([fluxRight], mesh.facesRight)
+#
+# phi.constrain(valueLeft, mesh.facesLeft)
+#
+# We re-initialize the solution variable
+#
+# phi.setValue(0)
+#
+# and obtain the steady-state solution with one implicit solution step
+#
+# DiffusionTerm(coeff = D).solve(var=phi)
+#
+# The analytical solution is simply
+#
+# \phi = \begin{cases} x & \text{for \( 0 < x < L/4 \),} \\ 10 x - 9L/4 & \text{for \( L/4 \le x < 3 L / 4 \),} \\ x + 18 L / 4 & \text{for \( 3 L / 4 \le x < L \),} \end{cases}
+#
+# or
+#
+# x = mesh.cellCenters[0]
+#
+# phiAnalytical.setValue(x)
+#
+# phiAnalytical.setValue(10 * x - 9. * L / 4.,
+#
+#                        where=(L / 4. <= x) & (x < 3. * L / 4.))
+#
+# phiAnalytical.setValue(x + 18. * L / 4.,
+#
+#                        where=3. * L / 4. <= x)
+#
+# print(phi.allclose(phiAnalytical, atol = 1e-8, rtol = 1e-8))
+# 1
+#
+# And finally, we can plot the result
+#
+# from fipy import input
+#
+# if __name__ == '__main__':
+#
+#     Viewer(vars=(phi, phiAnalytical)).plot()
+#
+#     input("Non-uniform steady-state diffusion. Press <return> to proceed...")
+#
+# steady-state solution to diffusion problem with a non-uniform diffusivity
+#
+# Note that for problems involving heat transfer and other similar conservation equations, it is important to ensure that we begin with the correct form of the equation. For example, for heat transfer with \phi representing the temperature,
+#
+# \frac{\partial}{\partial t} \left(\rho \hat{C}_p \phi\right) = \nabla \cdot [ k \nabla \phi ].
+#
+# With constant and uniform density \rho, heat capacity \hat{C}_p and thermal conductivity k, this is often written like Eq. (1), but replacing D with \alpha = \frac{k}{\rho \hat{C}_p}. However, when these parameters vary either in position or time, it is important to be careful with the form of the equation used. For example, if k = 1 and
+#
+# \rho \hat{C}_p = \begin{cases} 1& \text{for \( 0 < x < L / 4 \),} \\ 10& \text{for \( L / 4 \le x < 3 L / 4 \),} \\ 1& \text{for \( 3 L / 4 \le x < L \),} \end{cases},
+#
+# then we have
+#
+# \alpha = \begin{cases} 1& \text{for \( 0 < x < L / 4 \),} \\ 0.1& \text{for \( L / 4 \le x < 3 L / 4 \),} \\ 1& \text{for \( 3 L / 4 \le x < L \),} \end{cases}.
+#
+# However, using a DiffusionTerm with the same coefficient as that in the section above is incorrect, as the steady state governing equation reduces to 0 = \nabla^2\phi, which results in a linear profile in 1D, unlike that for the case above with spatially varying diffusivity. Similar care must be taken if there is time dependence in the parameters in transient problems.
+#
+# We can illustrate the differences with an example. We define field variables for the correct and incorrect solution
+#
+# phiT = CellVariable(name="correct", mesh=mesh)
+#
+# phiF = CellVariable(name="incorrect", mesh=mesh)
+#
+# phiT.faceGrad.constrain([fluxRight], mesh.facesRight)
+#
+# phiF.faceGrad.constrain([fluxRight], mesh.facesRight)
+#
+# phiT.constrain(valueLeft, mesh.facesLeft)
+#
+# phiF.constrain(valueLeft, mesh.facesLeft)
+#
+# phiT.setValue(0)
+#
+# phiF.setValue(0)
+#
+# The relevant parameters are
+#
+# k = 1.
+#
+# alpha_false = FaceVariable(mesh=mesh, value=1.0)
+#
+# X = mesh.faceCenters[0]
+#
+# alpha_false.setValue(0.1, where=(L / 4. <= X) & (X < 3. * L / 4.))
+#
+# eqF = 0 == DiffusionTerm(coeff=alpha_false)
+#
+# eqT = 0 == DiffusionTerm(coeff=k)
+#
+# eqF.solve(var=phiF)
+#
+# eqT.solve(var=phiT)
+#
+# Comparing to the correct analytical solution, \phi = x
+#
+# x = mesh.cellCenters[0]
+#
+# phiAnalytical.setValue(x)
+#
+# print(phiT.allclose(phiAnalytical, atol = 1e-8, rtol = 1e-8))
+# 1
+#
+# and finally, plot
+#
+# from fipy import input
+#
+# if __name__ == '__main__':
+#
+#     Viewer(vars=(phiT, phiF)).plot()
+#
+#     input("Non-uniform thermal conductivity. Press <return> to proceed...")
+#
+# representation of difference between non-uniform alpha and D
+#
+# Often, the diffusivity is not only non-uniform, but also depends on the value of the variable, such that
+#
+# (2)
+# \frac{\partial \phi}{\partial t} = \nabla \cdot [ D(\phi) \nabla \phi].
+#
+# With such a non-linearity, it is generally necessary to “sweep” the solution to convergence. This means that each time step should be calculated over and over, using the result of the previous sweep to update the coefficients of the equation, without advancing in time. In FiPy, this is accomplished by creating a solution variable that explicitly retains its “old” value by specifying hasOld when you create it. The variable does not move forward in time until it is explicitly told to updateOld(). In order to compare the effects of different numbers of sweeps, let us create a list of variables: phi[0] will be the variable that is actually being solved and phi[1] through phi[4] will display the result of taking the corresponding number of sweeps (phi[1] being equivalent to not sweeping at all).
+#
+# valueLeft = 1.
+#
+# valueRight = 0.
+#
+# phi = [
+#
+#     CellVariable(name="solution variable",
+#
+#                  mesh=mesh,
+#
+#                  value=valueRight,
+#
+#                  hasOld=1),
+#
+#     CellVariable(name="1 sweep",
+#
+#                  mesh=mesh),
+#
+#     CellVariable(name="2 sweeps",
+#
+#                  mesh=mesh),
+#
+#     CellVariable(name="3 sweeps",
+#
+#                  mesh=mesh),
+#
+#     CellVariable(name="4 sweeps",
+#
+#                  mesh=mesh)
+#
+# ]
+#
+# If, for example,
+#
+# D = D_0 (1 - \phi)
+#
+# we would simply write Eq. (2) as
+#
+# D0 = 1.
+#
+# eq = TransientTerm() == DiffusionTerm(coeff=D0 * (1 - phi[0]))
+#
+# Note
+#
+# Because of the non-linearity, the Crank-Nicholson scheme does not work for this problem.
+#
+# We apply the same boundary conditions that we used for the uniform diffusivity cases
+#
+# phi[0].constrain(valueRight, mesh.facesRight)
+#
+# phi[0].constrain(valueLeft, mesh.facesLeft)
+#
+# Although this problem does not have an exact transient solution, it can be solved in steady-state, with
+#
+# \phi(x) = 1 - \sqrt{\frac{x}{L}}
+#
+# x = mesh.cellCenters[0]
+#
+# phiAnalytical.setValue(1. - numerix.sqrt(x/L))
+#
+# We create a viewer to compare the different numbers of sweeps with the analytical solution from before.
+#
+# if __name__ == '__main__':
+#
+#     viewer = Viewer(vars=phi + [phiAnalytical],
+#
+#                     datamin=0., datamax=1.)
+#
+#     viewer.plot()
+#
+# As described above, an inner “sweep” loop is generally required for the solution of non-linear or multiple equation sets. Often a conditional is required to exit this “sweep” loop given some convergence criteria. Instead of using the solve() method equation, when sweeping, it is often useful to call sweep() instead. The sweep() method behaves the same way as solve(), but returns the residual that can then be used as part of the exit condition.
+#
+# We now repeatedly run the problem with increasing numbers of sweeps.
+#
+# from fipy import input
+#
+# from builtins import range
+#
+# for sweeps in range(1, 5):
+#
+#     phi[0].setValue(valueRight)
+#
+#     for step in range(steps):
+#
+#         # only move forward in time once per time step
+#
+#         phi[0].updateOld()
+#
+#
+#         # but "sweep" many times per time step
+#
+#         for sweep in range(sweeps):
+#
+#             res = eq.sweep(var=phi[0],
+#
+#                            dt=timeStepDuration)
+#
+#         if __name__ == '__main__':
+#
+#             viewer.plot()
+#
+#
+#     # copy the final result into the appropriate display variable
+#
+#     phi[sweeps].setValue(phi[0])
+#
+#     if __name__ == '__main__':
+#
+#         viewer.plot()
+#
+#         input("Implicit variable diffusivity. %d sweep(s). \
+#
+# Residual = %f. Press <return> to proceed..." % (sweeps, (abs(res))))
+#
+# As can be seen, sweeping does not dramatically change the result, but the “residual” of the equation (a measure of how accurately it has been solved) drops about an order of magnitude with each additional sweep.
+#
+# Attention
+#
+# Choosing an optimal balance between the number of time steps, the number of sweeps, the number of solver iterations, and the solver tolerance is more art than science and will require some experimentation on your part for each new problem.
+#
+# Finally, we can increase the number of steps to approach equilibrium, or we can just solve for it directly
+#
+# eq = DiffusionTerm(coeff=D0 * (1 - phi[0]))
+#
+# phi[0].setValue(valueRight)
+#
+# res = 1e+10
+#
+# while res > 1e-6:
+#
+#     res = eq.sweep(var=phi[0],
+#
+#                    dt=timeStepDuration)
+#
+# print(phi[0].allclose(phiAnalytical, atol = 1e-1))
+# 1
+#
+# from fipy import input
+#
+# if __name__ == '__main__':
+#
+#     viewer.plot()
+#
+#     input("Implicit variable diffusivity - steady-state. \
+#
+# Press <return> to proceed...")
+#
+# solution to a diffusion problem a non-linear diffusivity
+#
+# Fully implicit solutions are not without their pitfalls, particularly in steady state. Consider a localized block of material diffusing in a closed box.
+#
+# phi = CellVariable(mesh=mesh, name=r"$\phi$")
+#
+# phi.value = 0.
+#
+# phi.setValue(1., where=(x > L/2. - L/10.) & (x < L/2. + L/10.))
+#
+# if __name__ == '__main__':
+#
+#     viewer = Viewer(vars=phi, datamin=-0.1, datamax=1.1)
+#
+# initial condition for no-flux boundary conditions
+#
+# We assign no explicit boundary conditions, leaving the default no-flux boundary conditions, and solve
+#
+# \partial\phi/\partial t = \nabla\cdot(D\nabla\phi)
+#
+# D = 1.
+#
+# eq = TransientTerm() == DiffusionTerm(D)
+#
+# dt = 10. * dx**2 / (2 * D)
+#
+# steps = 200
+#
+# from builtins import range
+#
+# for step in range(steps):
+#
+#     eq.solve(var=phi, dt=dt)
+#
+#     if __name__ == '__main__':
+#
+#         viewer.plot()
+#
+# from fipy import input
+#
+# if __name__ == '__main__':
+#
+#     input("No-flux - transient. \
+#
+# Press <return> to proceed...")
+#
+# long-time solution for no-flux boundary conditions
+#
+# and see that \phi dissipates to the expected average value of 0.2 with reasonable accuracy.
+#
+# print(numerix.allclose(phi, 0.2, atol=1e-5))
+# True
+#
+# If we reset the initial condition
+#
+# phi.value = 0.
+#
+# phi.setValue(1., where=(x > L/2. - L/10.) & (x < L/2. + L/10.))
+#
+# if __name__ == '__main__':
+#
+#     viewer.plot()
+#
+# and solve the steady-state problem
+#
+# DiffusionTerm(coeff=D).solve(var=phi)
+#
+# if __name__ == '__main__':
+#
+#     viewer.plot()
+#
+# from fipy import input
+#
+# if __name__ == '__main__':
+#
+#     input("No-flux - stead-state failure. \
+#
+# Press <return> to proceed...")
+#
+# print(numerix.allclose(phi, 0.0))
+# True
+#
+# (failed) steady-state solution for no-flux boundary conditions
+#
+# we find that the value is uniformly zero! What happened to our no-flux boundary conditions?
+#
+# The problem is that in the implicit discretization of \nabla\cdot(D\nabla\phi) = 0,
+#
+# \begin{vmatrix} \frac{D}{{\Delta x}^2} & -\frac{D}{{\Delta x}^2} & & & & & \\\\[1em] \ddots & \ddots & \ddots & & & & \\[1em] & -\frac{D}{{\Delta x}^2} & \frac{2 D}{{\Delta x}^2} & -\frac{D}{{\Delta x}^2} & & & \\\\[1em] & & -\frac{D}{{\Delta x}^2} & \frac{2 D}{{\Delta x}^2} & -\frac{D}{{\Delta x}^2} & & \\\\[1em] & & & -\frac{D}{{\Delta x}^2} & \frac{2 D}{{\Delta x}^2} & -\frac{D}{{\Delta x}^2} & \\\\[1em] & & & & \ddots & \ddots & \ddots \\\\[1em] & & & & & -\frac{D}{{\Delta x}^2} & \frac{D}{{\Delta x}^2} \\\\[1em] \end{vmatrix} \begin{vmatrix} \phi^\text{new}_{0} \\\\[1em] \vdots \\[1em] \phi^\text{new}_{j-1} \\\\[1em] \phi^\text{new}_{j} \\\\[1em] \phi^\text{new}_{j+1} \\\\[1em] \vdots \\\\[1em] \phi^\text{new}_{N-1} \end{vmatrix} = \begin{vmatrix} 0 \\\\[1em] \vdots \\\\[1em] 0 \\\\[1em] 0 \\\\[1em] 0 \\\\[1em] \vdots \\\\[1em] 0 \end{vmatrix}
+#
+# the initial condition \phi^\text{old} no longer appears and \phi = 0 is a perfectly legitimate solution to this matrix equation.
+#
+# The solution is to run the transient problem and to take one enormous time step
+#
+# phi.value = 0.
+#
+# phi.setValue(1., where=(x > L/2. - L/10.) & (x < L/2. + L/10.))
+#
+# if __name__ == '__main__':
+#
+#     viewer.plot()
+#
+# (TransientTerm() == DiffusionTerm(D)).solve(var=phi, dt=1e6*dt)
+#
+# if __name__ == '__main__':
+#
+#     viewer.plot()
+#
+# from fipy import input
+#
+# if __name__ == '__main__':
+#
+#     input("No-flux - steady-state. \
+#
+# Press <return> to proceed...")
+#
+# print(numerix.allclose(phi, 0.2, atol=1e-5))
+# True
+#
+# steady-state solution for no-flux boundary conditions
+#
+# If this example had been written primarily as a script, instead of as documentation, we would delete every line that does not begin with either “>>>” or “...”, and then delete those prefixes from the remaining lines, leaving:
+#
+# ## This script was derived from
+# ## 'examples/diffusion/mesh1D.py'
+#
+# nx = 50
+# dx = 1.
+# mesh = Grid1D(nx = nx, dx = dx)
+# phi = CellVariable(name="solution variable",
+#                    mesh=mesh,
+#                    value=0)
+#
+# eq = DiffusionTerm(coeff=D0 * (1 - phi[0]))
+# phi[0].setValue(valueRight)
+# res = 1e+10
+# while res > 1e-6:
+#     res = eq.sweep(var=phi[0],
+#                    dt=timeStepDuration)
+#
+# print phi[0].allclose(phiAnalytical, atol = 1e-1)
+# # Expect:
+# # 1
+# #
+# if __name__ == '__main__':
+#     viewer.plot()
+#     input("Implicit variable diffusivity - steady-state. \
+# Press <return> to proceed...")
+#
