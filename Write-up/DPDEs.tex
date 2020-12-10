@@ -89,7 +89,9 @@ Some common methods for discretizing PDEs include Galerkin Methods, Finite Diffe
 
 \section{Related Work}
 
-Solving PDEs using the DGM architecture was originally proposed by Sirignano and Spiliopoulos in 2018. The authors realized that neural networks were analogous in structure to Galerkin Methods through the use of linear combinations of basis functions to approximate some function. 
+Solving PDEs using the DGM architecture was originally proposed by Sirignano and Spiliopoulos in 2018. The authors realized that neural networks were similar in concept to Galerkin Methods through the use of linear combinations of basis functions to approximate some function. Whereas the Galerkin method uses a single linear combination of basis functions to approximate the PDE solution, the DGM uses multiple layers of basis functions. The weights for these functions are determined by training the neural network via xstochastic gradient descent with backpropogation, adam optimizer, and momentum. For the loss function, the authors propose using the sum of distances from the boundary, initial, and differential conditions to approximate the error in the solution.
+The authors also showed that as the network depth goes to infinity, the neural network approximation converges point-wise to the PDE solution.\\ \\
+
 Black Scholes Paper and Toronto Review(These both come from University of Toronto)
 
 \subsection{ DGM Architecture }
