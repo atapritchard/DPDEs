@@ -102,10 +102,10 @@ from pdb import set_trace as debug
 
 print("2D heat equation solver")
 
-plate_length = 100
-max_iter_time = 400
+plate_length = 101
+max_iter_time = 100
 
-alpha = 0.1
+alpha = 25
 delta_x = 1
 
 delta_t = (delta_x ** 2)/(4 * alpha)
@@ -124,17 +124,15 @@ u_right = 0.0
 # u_initial = 0
 # u_initial = np.random.normal(0, 1, size=(plate_length,plate_length))
 u_initial = np.zeros((plate_length, plate_length))
-gaussian_pdf = lambda x, y: np.exp(-(x**2+y**2) / 2*0.5)  # |covariance matrix| = 0.5
-mid = plate_length // 2
+seed_pdf = lambda x, y: np.exp(-10*(x**2+y**2))
+mid = plate_length / 2
 for i in range(plate_length):
     for j in range(plate_length):
-        u_initial[i, j] = 200*gaussian_pdf((i - mid) / (mid / 4), (j - mid) / (mid / 4))
-
+        u_initial[i, j] = seed_pdf((i - mid) / (plate_length / 2), (j - mid) / (plate_length / 2))
 
 # Change initial conditions
 # u.fill(u_initial)
 u[0, :, :] = u_initial
-
 
 # Set the boundary conditions
 u[:, (plate_length-1):, :] = u_top
@@ -154,7 +152,6 @@ def calculate(u):
 # Rework to use scipy solver
 # scipy.integrate.solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False, events=None, vectorized=False, args=None, **options)[source]
 
-
 def plotheatmap(u_k, k):
     # Clear the current plot figure
     plt.clf()
@@ -164,7 +161,7 @@ def plotheatmap(u_k, k):
     plt.ylabel("y")
 
     # This is to plot u_k (u at time-step k)
-    plt.pcolormesh(u_k, cmap=plt.cm.jet, vmin=0, vmax=100)
+    plt.pcolormesh(u_k, cmap='hot', interpolation='nearest', vmin=0, vmax=100)
     plt.colorbar()
 
     return plt
@@ -173,10 +170,20 @@ def plotheatmap(u_k, k):
 u = calculate(u)
 temp = u
 
+for i in {0, 24, 49, 99}:
+    plt.pcolormesh(u[i], cmap='hot', vmin=0, vmax=1)
+    plt.colorbar()
+    plt.savefig('im{0}-2d'.format(i))
+    plt.clf()
+    # plt.show()
+
+# debug()
+
 def animate(k):
     plotheatmap(u[k], k)
 
-anim = animation.FuncAnimation(plt.figure(), animate, interval=1, frames=max_iter_time, repeat=False)
-anim.save("heat_equation_solution.gif")
+
+# anim = animation.FuncAnimation(plt.figure(), animate, interval=1, frames=max_iter_time, repeat=False)
+# anim.save("heat_equation_solution.gif")
 
 print("Done!")

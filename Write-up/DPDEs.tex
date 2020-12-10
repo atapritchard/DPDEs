@@ -69,18 +69,27 @@
 \maketitle
 
 \section{Introduction}
-The Deep Galerkin Method was first proposed in 2018 by Justin Sirignano and Konstantinos Spiliopoulos, who used the method to numerically solve the Black-Scholes equation for options pricing. This main advantage of the DGM is that it is mesh-free, and as a result does not suffer from the curse of dimensionality, allowing us to compute values in feasible time for higher-dimensional setups. Sirignano and Spiliopoulos proved rigorously that using a deep neural network, as the number of layers goes to infinity, the network approximation converges point wise to the true solution. This is done by choosing a loss function which consists of distance from some initial condition, distance from some boundary condition, and distance from the size of the differential operator applied to the function. By minimizing the sum of these three terms, the method aims to generate a function which closely approximates the initial condition, boundary condition, and a solution on the interior of the domain, thereby giving a numerical solution to the PDE.
+The Deep Galerkin Method was first proposed in 2018 by Justin Sirignano and Konstantinos Spiliopoulos, who used the method to numerically solve the Black-Scholes partial differential equation (PDE) for options pricing. This main advantage of the DGM is that it is mesh-free, and as a result does not suffer from the curse of dimensionality, allowing us to compute values in feasible time for higher-dimensional setups. Sirignano and Spiliopoulos proved rigorously that using a deep neural network, as the number of layers goes to infinity, the network approximation converges point wise to the true solution. This is done by choosing a loss function which consists of distance from some initial condition, distance from some boundary condition, and distance from the size of the differential operator applied to the function. By minimizing the sum of these three terms, the method aims to generate a function which closely approximates the initial condition, boundary condition, and a solution on the interior of the domain, thereby giving a numerical solution to the PDE.
 
 \section{Background}
 
 General commentary
 
+2, 3, 7, 4
+
 \subsection{PDEs and Heat Equation}
+
+Partial differential equations, or PDEs, define a subset of differential equations where derivatives with respect to different variables exist in the same equation. PDE's are commonly found in nature as they can describe many different kinds of diffusion processes. For example, the heat equation describes the diffusion of heat in a specified number of dimensions. In the one-dimensional case, there does exist a closed-form analytical solution to the heat equation. However, in the 2-D and more general multivariate case, no analytical solution is known to exist. As a result, if we wish to know how heat will diffuse in a given area under some specified initial conditions, then we need to find an approximation to the heat equation.
 
 \subsection{Traditional Approximation Methods}
 
+Traditional PDE approximation methods involve creating a mesh over the domain of the problem. In the 1-D case, this amounts to breaking the domain interval into some set of $n$ evenly-spaced points. At each point the PDE is approximated as an ODE with initial conditions satisfying the original PDE and then solved numerically at each point in time. When each of these discrete solutions is taken as a whole, we get an approximate solution to the PDE. \\ \\
+This process of meshing the domain from a continuous problem into a discrete set of problems and solving the individual ODEs requires a significant amount of both work and approximations, both of which contribute to making solving PDEs very numerically challenging. Since the number of mesh points increases exponentially in the dimension of the problem, it is necessary to use either a smaller domain or a larger distance between mesh points if we want to solve the PDE in a reasonable amount of time. However, as the distance between mesh points increases, the stability of the approximation breaks down. Likewise, restricting the size of the domain yields less information about PDE than we may want. This trade-off demonstrates the difficulty in numerically solving PDEs, as we are forced to choose between runtime and accuracy.\\ \\
+Some common methods for discretizing PDEs include Galerkin Methods, Finite Difference Methods, Finite Volume Methods, and Gradient Discretization Methods, among others. Galerkin Methods seek to approximate the PDE using a linear combination of basis functions. In this paper we use Finite Difference Methods for the 1-D case and Finite Volume Methods for the 2-D case in our approximations.\\
+
 \section{Related Work}
 
+Solving PDEs using the DGM architecture was originally proposed by Sirignano and Spiliopoulos in 2018. The authors realized that neural networks were analogous in structure to Galerkin Methods through the use of linear combinations of basis functions to approximate some function. 
 Black Scholes Paper and Toronto Review(These both come from University of Toronto)
 
 \subsection{ DGM Architecture }

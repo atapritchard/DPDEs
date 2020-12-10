@@ -3,14 +3,19 @@
 from fipy import Variable, FaceVariable, CellVariable, Grid1D, ExplicitDiffusionTerm, TransientTerm, DiffusionTerm, Viewer
 from fipy.tools import numerix
 from pdb import set_trace as debug
+import numpy as np
 
-nx = 50
+nx = 100
 dx = 1.
 mesh = Grid1D(nx=nx, dx=dx)
 
 # FiPy solves all equations at the centers of the cells of the mesh. We thus need a CellVariable object to hold the values of the solution, with the initial condition \phi = 0 at t = 0,
 
 phi = CellVariable(name="solution variable", mesh=mesh, value=0.)
+initial_dist = lambda v: np.exp(-10*v**2)
+for i in range(nx):
+    phi.value[i] = initial_dist(2 * (i / (nx - 1) - 0.5))
+
 
 # We’ll let
 
@@ -21,7 +26,7 @@ D = 1.
 # \phi = \begin{cases} 0& \text{at \(x = 1\),} \\ 1& \text{at \(x = 0\).} \end{cases}
 # are formed with a value
 
-valueLeft = 1
+valueLeft = 0
 valueRight = 0
 
 # and a set of faces over which they apply.
@@ -29,6 +34,7 @@ valueRight = 0
 # Only faces around the exterior of the mesh can be used for boundary conditions.
 # For example, here the exterior faces on the left of the domain are extracted by mesh.facesLeft. The boundary conditions is applied using phi. constrain() with these faces and a value (valueLeft).
 #
+
 phi.constrain(valueRight, mesh.facesRight)
 phi.constrain(valueLeft, mesh.facesLeft)
 
@@ -48,16 +54,17 @@ eqX = TransientTerm() == ExplicitDiffusionTerm(coeff=D)
 # We limit our steps to 90% of that value for good measure
 
 timeStepDuration = 0.9 * dx**2 / (2 * D)
-steps = 100
+steps = 5000
+print(timeStepDuration)
 
 # If we’re running interactively, we’ll want to view the result, but not if this example is being run automatically as a test. We accomplish this by having Python check if this script is the “__main__” script, which will only be true if we explicitly launched it and not if it has been imported by another script such as the automatic tester. The factory function Viewer() returns a suitable viewer depending on available viewers and the dimension of the mesh.
 
 phiAnalytical = CellVariable(name="analytical value", mesh=mesh)
 
 
-if __name__ == '__main__':
-    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
-    viewer.plot()
+# if __name__ == '__main__':
+#     viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
+#     viewer.plot()
 
 
 # In a semi-infinite domain, the analytical solution for this transient diffusion problem is given by \phi = 1 - \erf(x/2\sqrt{D t}). If the SciPy library is available, the result is tested against the expected profile:
@@ -74,11 +81,12 @@ except ImportError:
 # from builtins import range
 
 for step in range(steps):
-    eqX.solve(var=phi,
-              dt=timeStepDuration)
-if __name__ == '__main__':
-    viewer = Viewer(vars=(phi, phiAnalytical), datamin=0., datamax=1.)
-    viewer.plot()
+    eqX.solve(var=phi, dt=timeStepDuration)
+    if __name__ == '__main__' and step in {0, steps // 3, 2 * steps // 3, steps - 1}:
+        # debug()
+        viewer = Viewer(vars=(phi), datamin=0., datamax=1.)
+        viewer.plot()
+
 
 # print(phi.allclose(phiAnalytical, atol=7e-4))
 # debug()
@@ -86,8 +94,9 @@ if __name__ == '__main__':
 from fipy import input
 
 if __name__ == '__main__':
-
     input("Explicit transient diffusion. Press <return> to proceed...")
+exit(0)
+
 
 # solution to diffusion problem evolved by explicit time steps
 #
@@ -121,6 +130,7 @@ if __name__ == '__main__':
 # print(phi.allclose(phiAnalytical, atol = 2e-2))
 # 1
 #
+
 from fipy import input
 if __name__ == '__main__':
     input("Implicit transient diffusion. Press <return> to proceed...")
